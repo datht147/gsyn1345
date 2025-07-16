@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gsyn1345 - Register</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <div class="container">
+        <h1>🚀 Gsyn1345 - We Grow Together</h1>
+
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Your Name" required>
+      <input type="email" id="email" placeholder="Your Email" required>
+      <button type="submit">Register</button>
+    </form>
+
+    <div id="vipMessage" class="vip-message"></div>
+
+    <h2>Today's Participant List</h2>
+    <table id="participantTable">
+      <thead>
+        <tr><th>Name</th><th>Time</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</body>
+</html>

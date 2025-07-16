@@ -1,0 +1,65 @@
+
+body {
+  font-family: sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.logo {
+  display: block;
+  margin: 0 auto 10px auto;
+  max-width: 100%;
+  height: auto;
+}
+h1, h2 {
+  text-align: center;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+form input, form button {
+  padding: 10px;
+  font-size: 1em;
+}
+form button {
+  background-color: black;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.vip-message {
+  text-align: center;
+  font-weight: bold;
+  color: green;
+  margin-top: 20px;
+}
+table {
+  margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+}
+table, th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+
+.vip-name {
+  animation: blink 1s infinite;
+  font-weight: bold;
+  color: red;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}

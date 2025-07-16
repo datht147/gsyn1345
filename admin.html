@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Gsyn1345</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Dashboard</h1>
+
+    <button id="pickVipBtn" style="margin-bottom: 20px;">🎯 Pick Today's VIP</button>
+    <div id="vipMessage" class="vip-message"></div>
+
+    <h2>All Participants</h2>
+    <table id="allParticipantsTable">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Time</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>VIP Winners This Month</h2>
+    <table id="vipWinnersTable">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Time</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>VIP Selection Logs</h2>
+    <table id="vipLogsTable">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Time</th><th>Picked At</th><th>Picked By</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyANSUcWFghm8AEuXdTJ-hLMAW3xVni0bNk",
+      authDomain: "gsyn1345.firebaseapp.com",
+      projectId: "gsyn1345",
+      storageBucket: "gsyn1345.firebasestorage.app",
+      messagingSenderId: "176230721020",
+      appId: "1:176230721020:web:847104e59f42dd4c4e7e79",
+      measurementId: "G-RB5SD1CQ44",
+      databaseURL: "https://gsyn1345-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function renderTable(tableId, data) {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      tbody.innerHTML = "";
+      data.forEach(({ name, email, time }) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${name}</td><td>${email}</td><td>${time}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function loadAllParticipants() {
+      db.ref("participants/").once("value", snapshot => {
+        const data = snapshot.val();
+        const rows = data ? Object.values(data) : [];
+        renderTable("allParticipantsTable", rows);
+      });
+    }
+
+    function loadVIPWinners() {
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      db.ref("vipWinners/").once("value", snapshot => {
+        const data = snapshot.val();
+        const rows = data ? Object.values(data).filter(row => {
+          const date = new Date(row.time);
+          return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        }) : [];
+        renderTable("vipWinnersTable", rows);
+      });
+    }
+
+    async function pickVipManually() {
+      const confirmPick = confirm("Are you sure you want to pick a VIP for today?");
+      if (!confirmPick) return;
+    
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+
+      const participantsSnap = await db.ref("participants/").once("value");
+      const participants = participantsSnap.val();
+      if (!participants) return;
+
+      const todayList = Object.values(participants).filter(p => {
+        const date = new Date(p.time).toISOString().slice(0, 10);
+        return date === today;
+      });
+
+      const vipSnap = await db.ref("vipWinners/").once("value");
+      const vipData = vipSnap.val();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      const alreadyVIPs = vipData ? Object.values(vipData).filter(entry => {
+        const d = new Date(entry.time);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      }).map(v => v.email) : [];
+
+      const eligible = todayList.filter(p => !alreadyVIPs.includes(p.email));
+
+      if (eligible.length === 0) {
+        document.getElementById("vipMessage").innerText = "No eligible participants today.";
+        return;
+      }
+
+      const winner = eligible[Math.floor(Math.random() * eligible.length)];
+      await db.ref("vipWinners/").push(winner);
+      await db.ref("vipLogs/").push({
+        pickedAt: new Date().toISOString(),
+        pickedBy: "Admin (manual)",
+        name: winner.name,
+        email: winner.email,
+        time: winner.time
+      });
+      document.getElementById("vipMessage").innerHTML = "🎉 Congratulations <span class='vip-name'>" + winner.name + "</span> - You're the VIP of the Day!";
+      confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+
+      loadVIPWinners();
+    loadVIPLogs();
+    }
+
+    document.getElementById("pickVipBtn").addEventListener("click", pickVipManually);
+
+    loadAllParticipants();
+    loadVIPWinners();
+    loadVIPLogs();
+  </script>
+</body>
+</html>
+
+
+<script>
+  function loadVIPLogs() {
+    db.ref("vipLogs/").once("value", snapshot => {
+      const data = snapshot.val();
+      const tbody = document.querySelector("#vipLogsTable tbody");
+      tbody.innerHTML = "";
+      if (data) {
+        Object.values(data).reverse().forEach(({ name, email, time, pickedAt, pickedBy }) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${name}</td><td>${email}</td><td>${time}</td><td>${new Date(pickedAt).toLocaleString()}</td><td>${pickedBy}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+    });
+  }
+</script>
